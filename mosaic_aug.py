@@ -11,6 +11,21 @@ import cv2
 import numpy as np
 from tqdm import trange
 
+def Resizer(img, w, h):
+    seq = iaa.Sequential(
+                    [
+                    iaa.Resize({"longer-side": max(w, h),
+                                "shorter-side": "keep-aspect-ratio"}),
+                    
+                    iaa.PadToFixedSize(width=w, height=h, position="uniform",
+                                            pad_mode=['reflect', 'symmetric']),
+                    
+                    iaa.CropToFixedSize(width=w, height=h, position='uniform')
+                    ])
+    
+    img = seq.augment_image(img)
+    
+    return img
 
 def mosaic_augment(all_img_list, idxs, output_size, scale_range):
     output_img = np.zeros([output_size[0], output_size[1], 3], dtype=np.uint8)
@@ -25,20 +40,24 @@ def mosaic_augment(all_img_list, idxs, output_size, scale_range):
 
         img = cv2.imread(path)
         if i == 0:  # top-left
-            img = cv2.resize(img, (divid_point_x, divid_point_y))
+            #img = cv2.resize(img, (divid_point_x, divid_point_y))
+            img = Resizer(img, divid_point_x, divid_point_y)
             output_img[:divid_point_y, :divid_point_x, :] = img
             
 
         elif i == 1:  # top-right
-            img = cv2.resize(img, (output_size[1] - divid_point_x, divid_point_y))
+            #img = cv2.resize(img, (output_size[1] - divid_point_x, divid_point_y))
+            img = Resizer(img, output_size[1] - divid_point_x, divid_point_y)
             output_img[:divid_point_y, divid_point_x:output_size[1], :] = img
             
         elif i == 2:  # bottom-left
-            img = cv2.resize(img, (divid_point_x, output_size[0] - divid_point_y))
+            #img = cv2.resize(img, (divid_point_x, output_size[0] - divid_point_y))
+            img = Resizer(img, divid_point_x, output_size[0] - divid_point_y)
             output_img[divid_point_y:output_size[0], :divid_point_x, :] = img
             
         else:  # bottom-right
-            img = cv2.resize(img, (output_size[1] - divid_point_x, output_size[0] - divid_point_y))
+            #img = cv2.resize(img, (output_size[1] - divid_point_x, output_size[0] - divid_point_y))
+            img = Resizer(img, output_size[1] - divid_point_x, output_size[0] - divid_point_y)
             output_img[divid_point_y:output_size[0], divid_point_x:output_size[1], :] = img
             
 
